@@ -17,6 +17,35 @@ from urllib import request
 import gzip
 import shutil
 
+def init():
+    print('Init...')
+
+    if not exists('./GoogleNews-vectors-negative300.bin'):
+      print('Downloading...')
+      request.urlretrieve(url='https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz', filename='GoogleNews-vectors-negative300.bin.gz')
+      print('Uncompressing...')
+      with gzip.open('GoogleNews-vectors-negative300.bin.gz', 'rb') as f_in:
+        with open('GoogleNews-vectors-negative300.bin', 'wb') as f_out:
+          shutil.copyfileobj(f_in, f_out)
+
+    if not exists('./word2vec.db'):
+      print('dump-vecs...')
+      subprocess.run(['python', 'dump-vecs.py'])
+
+    if not exists('./nearest.pickle'):
+      print('dump-hints...')
+      subprocess.run(['python', 'dump-hints.py'])
+      print('store-hints...')
+      subprocess.run(['python', 'store-hints.py'])
+
+    if not exists('./static/assets/js/british_spellings.js'):
+      print('british...')
+      subprocess.run(['python', 'british.py'])
+
+    print('...done')
+
+init()
+
 app = Flask(__name__)
 
 import logging
@@ -180,29 +209,6 @@ def add_header(response):
 
 if __name__ == "__main__":
     import sqlite3
-
-    if not exists('./GoogleNews-vectors-negative300.bin'):
-      print('Downloading...')
-      request.urlretrieve(url='https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz', filename='GoogleNews-vectors-negative300.bin.gz')
-      print('Uncompressing...')
-      with gzip.open('GoogleNews-vectors-negative300.bin.gz', 'rb') as f_in:
-        with open('GoogleNews-vectors-negative300.bin', 'wb') as f_out:
-          shutil.copyfileobj(f_in, f_out)
-
-    if not exists('./word2vec.db'):
-      print('dump-vecs...')
-      subprocess.run(['python', 'dump-vecs.py'])
-
-    if not exists('./nearest.pickle'):
-      print('dump-hints...')
-      subprocess.run(['python', 'dump-hints.py'])
-      print('store-hints...')
-      subprocess.run(['python', 'store-hints.py'])
-
-    if not exists('./static/assets/js/british_spellings.js'):
-      print('british...')
-      subprocess.run(['python', 'british.py'])
-
 
     app.run() # host="0.0.0.0", port=8080)
 
