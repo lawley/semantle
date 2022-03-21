@@ -13,6 +13,10 @@ from functools import lru_cache
 
 app = Flask(__name__)
 
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 
 @app.route("/")
 def send_index():
@@ -171,4 +175,4 @@ def add_header(response):
 if __name__ == "__main__":
     import sqlite3
 
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=8000)

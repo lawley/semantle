@@ -384,7 +384,9 @@ similarity of ${(similarityStory.rest * 100).toFixed(2)}.
                 }
                 guessed.add(guess);
 
-                const newEntry = [similarity, guess, percentile, guessCount];
+                const count = guesses.length + 1;
+
+                const newEntry = [similarity, guess, percentile, count];
                 guesses.push(newEntry);
 
                 if (handleStats) {
@@ -439,6 +441,66 @@ similarity of ${(similarityStory.rest * 100).toFixed(2)}.
         $("#settings-close").focus();
     }
 
+    function updateVisualisation() {
+        // set the dimensions and margins of the graph
+        const m = 10, s = 460,
+            margin = {top: m, right: m, bottom: m, left: m},
+            width = s - margin.left - margin.right,
+            height = s - margin.top - margin.bottom,
+            innerRadius = 80,
+            outerRadius = Math.min(width, height) / 2;   // the outerRadius goes from the middle of the SVG area to the border
+
+        // append the svg object to the body of the page
+        const viz = d3.select("#my_dataviz");
+        viz.selectAll("*").remove();
+        const svg = viz
+          .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", `translate(${width/2},${height/2+0})`); // Add 100 on Y translation, cause upper bars are longer
+
+        const data = guesses.map(entry => {
+                       let [similarity, oldGuess, percentile, guessNumber] = entry;
+                       return {
+                         num: guessNumber,
+                         term: oldGuess,
+                         score: similarity,
+                         percentile: percentile,
+                       };
+                     }).sort((a, b) => d3.ascending(a.num, b.num));
+
+        // Rotational offset
+        const r = 2 * Math.PI / (guesses.length + 1) / 2;
+
+        // X scale
+        const x = d3.scaleBand()
+            .range([r, r + 2 * Math.PI])    // X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
+            .align(0)                  // This does nothing ?
+            .domain( data.map(d => d.term)); // The domain of the X axis is the list of states.
+
+        // Y scale
+        const y = d3.scaleRadial()
+            .range([innerRadius, outerRadius])   // Domain will be define later.
+            .domain([0, 100]); // Domain of Y is from 0 to the max seen in the data
+
+        const last = guesses.length;
+
+        // Add bars
+        svg.append("g")
+          .selectAll("path")
+          .data(data)
+          .join("path")
+            .attr('fill', d => (1000 === d.percentile) ? '#b3a269' : ((last === d.num) ? '#ffffff' : (!d.percentile ? '#69b3a2' : '#b369a2')))
+            .attr("d", d3.arc()     // imagine your doing a part of a donut plot
+                .innerRadius(innerRadius)
+                .outerRadius(d => y(d.score))
+                .startAngle(d => x(d.term))
+                .endAngle(d => x(d.term) + x.bandwidth())
+                .padAngle(0.01)
+                .padRadius(innerRadius))
+    }
+
     function updateGuesses() {
         let inner = `<tr><th id="chronoOrder">#</th><th id="alphaOrder">Guess</th><th id="similarityOrder">Similarity</th><th>Getting close?</th></tr>`;
         /* This is dumb: first we find the most-recent word, and put
@@ -472,6 +534,7 @@ similarity of ${(similarityStory.rest * 100).toFixed(2)}.
             chrono_forward = 1;
             updateGuesses();
         });
+        updateVisualisation();
     }
 
     function toggleDarkMode(on) {
