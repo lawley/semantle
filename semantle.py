@@ -44,13 +44,13 @@ def init():
 
     print('...done')
 
-init()
-
 app = Flask(__name__)
 
 import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+
+init()
 
 
 @app.route("/")
