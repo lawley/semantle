@@ -28,7 +28,7 @@ ALL_WORDS = False
 
 
 model = word2vec.KeyedVectors.load_word2vec_format(
-    "../GoogleNews-vectors-negative300.bin", binary=True
+    "./GoogleNews-vectors-negative300.bin", binary=True
 )
 
 
