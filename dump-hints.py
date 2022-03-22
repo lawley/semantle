@@ -137,7 +137,7 @@ if __name__ == "__main__":
         mapper = tqdm.contrib.concurrent.process_map(
             partial(find_hints, progress=False),
             secrets,
-            max_workers=12,
+            max_workers=6,
             chunksize=1,
             total=len(secrets),
         )

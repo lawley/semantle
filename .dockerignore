@@ -1,8 +1,11 @@
+.git
+.gitignore
+GoogleNews-vectors-negative300.bin
+GoogleNews-vectors-negative300.bin.gz
 word2vec.db
 word2vec.db-shm
 word2vec.db-wal
 nearest.pickle
 static/assets/js/british_spellings.js
 .DS_Store
-GoogleNews-vectors-negative300.bin
-GoogleNews-vectors-negative300.bin.gz
+stripes*
