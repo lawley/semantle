@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 import logging
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+#log.setLevel(logging.ERROR)
 
 
 @app.route("/")

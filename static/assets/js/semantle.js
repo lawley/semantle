@@ -209,7 +209,7 @@ function solveStory(guesses, puzzleNumber) {
     [similarity, old_guess, percentile, guess_number] = penultimate_guess;
     const penultimate_guess_msg = `My penultimate guess ${describe(similarity, percentile)}.`;
 
-    return `I solved Semantle #${puzzleNumber} in ${guess_count} guesses. ${first_guess}${first_hit}${penultimate_guess_msg} https://semantle.novalis.org/`;
+    return `I solved Semantle #${puzzleNumber} in ${guess_count} guesses. ${first_guess}${first_hit}${penultimate_guess_msg} https://semantle.herokuapp.com/`;
 }
 
 let Semantle = (function() {
@@ -453,10 +453,11 @@ similarity of ${(similarityStory.rest * 100).toFixed(2)}.
         // append the svg object to the body of the page
         const viz = d3.select("#my_dataviz");
         viz.selectAll("*").remove();
-        const svg = viz
+        const box = viz
           .append("svg")
             .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("height", height + margin.top + margin.bottom);
+        const svg = box
           .append("g")
             .attr("transform", `translate(${width/2},${height/2+0})`); // Add 100 on Y translation, cause upper bars are longer
 
@@ -484,14 +485,19 @@ similarity of ${(similarityStory.rest * 100).toFixed(2)}.
             .range([innerRadius, outerRadius])   // Domain will be define later.
             .domain([0, 100]); // Domain of Y is from 0 to the max seen in the data
 
+        // Color scale
+        const cmap = d3.scaleLinear()
+                       .domain([0,100])
+                       .range(['#69b3a2', '#b369a2']);
         const last = guesses.length;
+        const color = cmap(data[last-1].score);
 
         // Add bars
         svg.append("g")
           .selectAll("path")
           .data(data)
           .join("path")
-            .attr('fill', d => (1000 === d.percentile) ? '#b3a269' : ((last === d.num) ? '#ffffff' : (!d.percentile ? '#69b3a2' : '#b369a2')))
+            .attr('fill', d => (1000 === d.percentile) ? '#b3a269' : (!d.percentile ? (last === d.num ? '#55c7ad' : '#69b3a2') : (last === d.num ? '#c755ad' : '#b369a2')))
             .attr("d", d3.arc()     // imagine your doing a part of a donut plot
                 .innerRadius(innerRadius)
                 .outerRadius(d => y(d.score))
@@ -499,6 +505,12 @@ similarity of ${(similarityStory.rest * 100).toFixed(2)}.
                 .endAngle(d => x(d.term) + x.bandwidth())
                 .padAngle(0.01)
                 .padRadius(innerRadius))
+        box.append("text")
+          .attr("fill", cmap(data[last-1].score))
+          .attr("font-size","48pt")
+          .attr("x","49%").attr("y","49%")
+          .attr("dominant-baseline","middle").attr("text-anchor","middle")
+          .text(last);
     }
 
     function updateGuesses() {

@@ -1,6 +1,4 @@
-FROM python:3
-
-RUN adduser --disabled-password --disabled-login myuser
+FROM python:3 AS build
 
 WORKDIR /opt/semantle
 
@@ -8,7 +6,11 @@ RUN curl -O https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negati
     gunzip GoogleNews-vectors-negative300.bin.gz
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    mkdir -p static/assets/js
+
+COPY static/assets/js/secretWords.js \
+     static/assets/js/.
 
 COPY british.py	\
      dump-hints.py \
@@ -16,25 +18,33 @@ COPY british.py	\
      store-hints.py \
      banned.txt \
      words_alpha.txt \
+     british_spellings.json \
      .
 
 RUN python dump-vecs.py
-
-COPY static ./static
-
 RUN python dump-hints.py
 RUN python store-hints.py
-
-COPY semantle.py \
-     british_spellings.json \
-     templates \
-     .
-
 RUN python british.py
 
-RUN chown -R myuser .
+FROM --platform=linux/amd64 python:3
 
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN adduser --disabled-password --disabled-login myuser
 USER myuser
+
+WORKDIR /opt/semantle
+
+COPY --chown=myuser --from=build \
+     /opt/semantle ./
+
+COPY --chown=myuser \
+     semantle.py \
+     templates \
+     .
+COPY --chown=myuser static tmp_static
+RUN cp -R tmp_static/* static && rm -rf tmp_static
 
 EXPOSE $PORT
 
