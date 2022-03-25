@@ -1,0 +1,12 @@
+services:
+  # A Docker web service
+  - type: web
+    name: semantle
+    env: docker
+    repo: https://github.com/lawley/semantle.git # optional
+    region: oregon # optional (defaults to oregon)
+    plan: free # optional (defaults to starter)
+    branch: render # optional (uses repo default)
+    # dockerCommand: ./webdis.sh # optional (defaults to Dockerfile command)
+    numInstances: 1 # optional (defaults to 1)
+    healthCheckPath: /
